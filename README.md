@@ -1,203 +1,82 @@
 # YatraLink
 
-🌄 About YatraOne
+YatraOne is a Nepal-based tourism marketplace connecting travelers with local guides, drivers, and service providers. This repository currently contains the foundation branch for the platform architecture and shared development setup.
 
-YatraOne is a Nepal-based digital tourism services marketplace designed primarily for international travelers visiting Nepal.
+## Repository structure
 
-The platform brings fragmented tourism services together into one modern digital ecosystem, allowing travelers to discover, compare, book, communicate with, and review local tourism service providers.
+- `frontend/` – React + TypeScript + Vite application
+- `backend/` – FastAPI + SQLAlchemy + Pydantic service foundation
+- `docs/` – project documentation and engineering instructions
+- `.github/` – CI workflow configuration
+- `README.md` – project overview and setup notes
 
-Instead of searching across agencies, hotels, social media, personal contacts, and informal networks, travelers can use YatraOne as a single platform for finding trusted local services.
+## Current branch scope
 
-Initial marketplace categories
-🧭 Local Tourist Guides
-🌍 Multilingual Guides
-🏔️ Sherpas
-🥾 Trekking Guides
-🎒 Porters
-⛰️ Trekking Assistants
-🚗 Private Vehicles & Drivers
-✈️ Airport Transfers
-🏕️ Local Tourism Experiences
-🚀 Future Travel Services
+This branch focuses only on the project foundation:
 
-YatraOne starts with the local guide and tourism-services marketplace and is designed to evolve into a broader tourism super-app for Nepal.
+- frontend scaffolding and configuration
+- backend app structure and configuration
+- PostgreSQL-ready architecture
+- health endpoint at `/api/v1/health`
+- environment examples
+- CORS setup and API service layer
+- linting, formatting, and basic tests
+- initial documentation
 
-🎯 The Problem
+The following are intentionally not implemented in this branch:
 
-International travelers visiting Nepal can face difficulties finding reliable local tourism services.
+- authentication
+- guide search
+- maps
+- bookings
+- payments
+- messaging
+- reviews
+- dashboards
+- AI features
 
-Common challenges include:
+## Local development
 
-Finding trustworthy local guides
-Language barriers
-Unclear pricing
-Fragmented service providers
-Difficulty comparing providers
-Limited visibility into experience and qualifications
-Finding available providers at the right time and location
-Uncertainty around transportation
-Lack of centralized reviews and provider information
-Offline negotiations and fragmented booking processes
+### Frontend
 
-Tourism services are currently distributed across:
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
-Agencies
-   ↓
-Hotels
-   ↓
-Social Media
-   ↓
-Personal Contacts
-   ↓
-Informal Networks
-   ↓
-Offline Negotiation
+### Backend
 
-YatraOne aims to bring these fragmented interactions into one structured marketplace.
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-💡 The Solution
+## Health check
 
-YatraOne creates a centralized marketplace where travelers can discover tourism services based on:
+```http
+GET /api/v1/health
+```
 
-📍 Location
-🗣️ Language
-⭐ Rating
-💰 Price
-🏅 Experience
-📅 Availability
-🎯 Specialty
-🚗 Service type
+```json
+{
+  "status": "ok",
+  "service": "yatraone-api"
+}
+```
 
-The platform combines discovery + trust + matching + booking + communication + reviews into a single ecosystem.
+## Verification
 
-The core idea
+- Frontend lint/build: `npm run lint` and `npm run build`
+- Backend tests/lint: `pytest -q` and `ruff check .`
 
-Find the right local person for the right journey at the right time.
+This repository is intentionally focused on foundation work only, as requested for the feature/project-setup branch.
 
-📍 Core Feature — Find a Guide Near Me
-
-One of YatraOne's key product concepts is location-based guide discovery.
-
-A tourist can select:
-
-Find a guide near me
-
-With explicit user permission, YatraOne can use the user's current location to discover nearby available guides.
-
-Example
-
-A tourist is visiting Basantapur, Kathmandu.
-
-They search:
-
-Language: Chinese / Mandarin
-Specialty: Cultural Guide
-Availability: Available Now
-Distance: Within 2 km
-Duration: 3 Hours
-
-YatraOne returns matching providers.
-
-Example provider:
-
-Li Mei
-Cultural Guide
-
-⭐ 4.9
-127 Reviews
-
-🇨🇳 Chinese
-🇬🇧 English
-🇳🇵 Nepali
-
-5+ Years Experience
-
-📍 2.1 km away
-🟢 Available Now
-
-From $XX / hour
-
-The traveler can then:
-
-View Profile → Compare → Book → Communicate → Experience → Review
-
-🌍 Multilingual Matching
-
-Language is a first-class feature of the YatraOne marketplace.
-
-Travelers can find local providers who speak their preferred language.
-
-Potential supported languages include:
-
-Language
-🇬🇧 English
-🇨🇳 Chinese / Mandarin
-🇮🇳 Hindi
-🇪🇸 Spanish
-🇫🇷 French
-🇩🇪 German
-🇯🇵 Japanese
-🇰🇷 Korean
-🇳🇵 Nepali
-
-Providers can list the languages they genuinely speak and, where relevant, provide supporting qualifications.
-
-🏔️ Sherpa & Trekking Marketplace
-
-YatraOne is designed to support Nepal's trekking ecosystem.
-
-Providers can potentially create professional profiles containing:
-
-Identity verification
-Relevant certificates
-Training
-Trekking experience
-Regions of expertise
-Languages
-Rates
-Availability
-Customer reviews
-Ratings
-Emergency contact information
-
-Travelers can search by:
-
-Trekking Region
-       +
-Provider Role
-       +
-Experience
-       +
-Language
-       +
-Price
-       +
-Availability
-       +
-Rating
-
-Potential categories:
-
-Sherpas
-Trekking Guides
-Porters
-Trekking Assistants
-
-Potential regions:
-
-Annapurna
-Everest
-Langtang
-Manaslu
-Mustang
-Other trekking regions
-🚗 Transport Marketplace
-
-YatraOne will also connect travelers with trusted transportation providers.
-
-Potential services include:
-
-✈️ Airport Transfers
 🚘 Private Cars
 🚙 SUVs
 🚐 Vans

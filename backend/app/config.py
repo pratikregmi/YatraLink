@@ -9,10 +9,16 @@ class Settings(BaseSettings):
     api_v1_prefix: str = '/api/v1'
     debug: bool = False
     database_url: str = Field(
-        default='postgresql+psycopg://postgres:postgres@localhost:5432/yatraone',
+        default='sqlite:///./yatraone.db',
         validation_alias='DATABASE_URL',
     )
     backend_cors_origins: list[str] = ['http://localhost:5173', 'http://127.0.0.1:5173']
+    secret_key: str = Field(
+        default='dev-secret-key-change-me',
+        validation_alias='SECRET_KEY',
+    )
+    algorithm: str = 'HS256'
+    access_token_expire_minutes: int = 60 * 24
 
     model_config = SettingsConfigDict(
         env_file='.env',

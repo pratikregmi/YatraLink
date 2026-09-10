@@ -9,7 +9,7 @@ settings = get_settings()
 
 app = FastAPI(
     title='YatraOne API',
-    version='0.1.0',
+    version='0.115.0',
     description='Foundation API for YatraOne project setup.',
 )
 

@@ -1,6 +1,7 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 
-import { getCurrentUser, loginUser, signupUser, type UserResponse } from './lib/api'
+import { AuthModal } from './components/auth/AuthModal'
+import { getCurrentUser, type UserResponse } from './lib/api'
 import './App.css'
 
 function Logo() {
@@ -45,18 +46,8 @@ const services = [
   },
 ]
 
-const initialForm = {
-  full_name: '',
-  email: '',
-  password: '',
-}
-
 function App() {
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup')
-  const [form, setForm] = useState(initialForm)
   const [user, setUser] = useState<UserResponse | null>(null)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
 
   useEffect(() => {
@@ -72,62 +63,9 @@ function App() {
       })
   }, [])
 
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setForm((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }))
-  }
-
-  const handleAuthSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      if (authMode === 'signup') {
-        await signupUser({
-          full_name: form.full_name,
-          email: form.email,
-          password: form.password,
-        })
-
-        const loginResponse = await loginUser({
-          email: form.email,
-          password: form.password,
-        })
-
-        localStorage.setItem('yatra-link-token', loginResponse.access_token)
-        const profile = await getCurrentUser(loginResponse.access_token)
-        setUser(profile)
-        setForm(initialForm)
-        return
-      }
-
-      const loginResponse = await loginUser({
-        email: form.email,
-        password: form.password,
-      })
-
-      localStorage.setItem('yatra-link-token', loginResponse.access_token)
-      const profile = await getCurrentUser(loginResponse.access_token)
-      setUser(profile)
-      setForm(initialForm)
-    } catch (submissionError) {
-      const message =
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : 'Unable to complete authentication.'
-      setError(message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleLogout = () => {
     localStorage.removeItem('yatra-link-token')
     setUser(null)
-    setForm(initialForm)
   }
 
   return (
@@ -401,89 +339,19 @@ function App() {
           <span>Nepal · Built for the world</span>
         </div>
       </footer>
-
-      {authOpen && (
-        <div className="auth-modal-backdrop" onClick={() => setAuthOpen(false)}>
-          <div className="auth-modal" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="auth-close" onClick={() => setAuthOpen(false)}>
-              ×
-            </button>
-
-            <div className="auth-toggle">
-              <button
-                type="button"
-                className={authMode === 'signup' ? 'active' : ''}
-                onClick={() => setAuthMode('signup')}
-              >
-                Sign up
-              </button>
-              <button
-                type="button"
-                className={authMode === 'login' ? 'active' : ''}
-                onClick={() => setAuthMode('login')}
-              >
-                Log in
-              </button>
-            </div>
-
-            {user ? (
-              <div className="auth-user-panel">
-                <div className="user-pill">{user.role}</div>
-                <h3>{user.full_name}</h3>
-                <p>{user.email}</p>
-                <button type="button" className="secondary-button" onClick={handleLogout}>
-                  Log out
-                </button>
-              </div>
-            ) : (
-              <form className="auth-form" onSubmit={handleAuthSubmit}>
-                {authMode === 'signup' && (
-                  <label>
-                    Full name
-                    <input
-                      name="full_name"
-                      value={form.full_name}
-                      onChange={handleInputChange}
-                      placeholder="Your name"
-                      required
-                    />
-                  </label>
-                )}
-
-                <label>
-                  Email address
-                  <input
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleInputChange}
-                    placeholder="you@example.com"
-                    required
-                  />
-                </label>
-
-                <label>
-                  Password
-                  <input
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter a secure password"
-                    required
-                  />
-                </label>
-
-                {error && <p className="form-error">{error}</p>}
-
-                <button className="primary-button" type="submit" disabled={loading}>
-                  {loading ? 'Please wait...' : authMode === 'signup' ? 'Create account' : 'Log in'}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      <AuthModal
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthenticated={(profile) => {
+          setUser(profile)
+          setAuthOpen(false)
+        }}
+        onLogout={() => {
+          handleLogout()
+          setAuthOpen(false)
+        }}
+        user={user}
+      />
     </div>
   )
 }

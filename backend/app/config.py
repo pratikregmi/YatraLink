@@ -13,12 +13,18 @@ class Settings(BaseSettings):
         validation_alias='DATABASE_URL',
     )
     backend_cors_origins: list[str] = ['http://localhost:5173', 'http://127.0.0.1:5173']
-    secret_key: str = Field(
-        default='dev-secret-key-change-me',
-        validation_alias='SECRET_KEY',
+    jwt_secret_key: str = Field(
+        default='dev-jwt-secret-key-change-me',
+        validation_alias='JWT_SECRET_KEY',
     )
-    algorithm: str = 'HS256'
-    access_token_expire_minutes: int = 60 * 24
+    jwt_algorithm: str = Field(
+        default='HS256',
+        validation_alias='JWT_ALGORITHM',
+    )
+    jwt_access_token_expire_minutes: int = Field(
+        default=60 * 24,
+        validation_alias='JWT_ACCESS_TOKEN_EXPIRE_MINUTES',
+    )
 
     model_config = SettingsConfigDict(
         env_file='.env',

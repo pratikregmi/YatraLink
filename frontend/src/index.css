@@ -3,11 +3,14 @@
   line-height: 1.5;
   font-weight: 400;
   color: #e2e8f0;
-  background: linear-gradient(135deg, #020617, #0f172a 45%, #111827);
+  background:
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.18), transparent 28%),
+    linear-gradient(180deg, #020817 0%, #07111d 22%, #0f172a 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
 }
 
 * {
@@ -15,13 +18,25 @@
 }
 
 html {
-  background: #020617;
+  scroll-behavior: smooth;
+  background: #020817;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: transparent;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 #root {
@@ -30,19 +45,7 @@ body {
 
 h1,
 h2,
+h3,
 p {
   margin-top: 0;
-}
-
-h1 {
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  line-height: 1.1;
-  color: #f8fafc;
-  margin-bottom: 18px;
-}
-
-h2 {
-  font-size: 1.2rem;
-  color: #f8fafc;
-  margin-bottom: 12px;
 }

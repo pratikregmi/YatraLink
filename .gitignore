@@ -5,6 +5,8 @@ frontend/.vite/
 frontend/*.local
 
 # Backend / Python
+.venv/
+**/.venv/
 backend/.venv/
 .venv/
 backend/__pycache__/
@@ -13,6 +15,8 @@ backend/.ruff_cache/
 backend/.env
 backend/.env.*
 backend/.venv/
+*.db
+**/*.db
 **/__pycache__/
 *.py[cod]
 *.db

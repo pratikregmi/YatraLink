@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 
-import { useAuth } from '../lib/auth'
 import { getApiErrorMessage } from '../lib/api'
+import { useAuth } from '../lib/auth'
 
 const initialForm = {
   full_name: '',
@@ -37,6 +37,11 @@ export function SignupPage({ navigate }: SignupPageProps) {
     }
 
     try {
+      if (form.password !== form.password_confirmation) {
+        setError('Passwords do not match.')
+        return
+      }
+
       await signup(form)
       navigate('/account')
     } catch (submissionError) {

@@ -17,6 +17,14 @@ class Settings(BaseSettings):
         default_factory=lambda: ['http://localhost:5173', 'http://127.0.0.1:5173'],
         validation_alias='BACKEND_CORS_ORIGINS',
     )
+    jwt_access_token_secret_key: str = Field(
+        default='dev-access-secret-key-change-me',
+        validation_alias='JWT_ACCESS_TOKEN_SECRET_KEY',
+    )
+    jwt_refresh_token_secret_key: str = Field(
+        default='dev-refresh-secret-key-change-me',
+        validation_alias='JWT_REFRESH_TOKEN_SECRET_KEY',
+    )
     jwt_secret_key: str = Field(
         default='dev-jwt-secret-key-change-me',
         validation_alias='JWT_SECRET_KEY',
@@ -30,8 +38,12 @@ class Settings(BaseSettings):
         validation_alias='JWT_ALGORITHM',
     )
     jwt_access_token_expire_minutes: int = Field(
-        default=60 * 24,
+        default=15,
         validation_alias='JWT_ACCESS_TOKEN_EXPIRE_MINUTES',
+    )
+    jwt_refresh_token_expire_days: int = Field(
+        default=30,
+        validation_alias='JWT_REFRESH_TOKEN_EXPIRE_DAYS',
     )
 
     @field_validator('backend_cors_origins', mode='before')

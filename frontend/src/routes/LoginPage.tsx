@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 
-import { useAuth } from '../lib/auth'
 import { getApiErrorMessage } from '../lib/api'
+import { useAuth } from '../lib/auth'
 
 const initialForm = {
   email: '',

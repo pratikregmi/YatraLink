@@ -8,6 +8,17 @@ export type UserResponse = {
   is_active: boolean
 }
 
+export type ProviderCategory = 'guide' | 'sherpa' | 'trekking_guide' | 'porter' | 'driver'
+
+export type ProviderResponse = {
+  id: number
+  user_id: number
+  category: ProviderCategory
+  bio: string
+  years_experience: number
+  daily_rate: string | null
+}
+
 const ACCESS_TOKEN_STORAGE_KEY = 'yatra-link-access-token'
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 
@@ -139,6 +150,21 @@ export async function refreshAccessToken() {
 export async function getHealthStatus() {
   const response = await apiClient.get('/health')
   return response.data
+}
+
+export async function onboardProvider(payload: {
+  category: ProviderCategory
+  bio: string
+  years_experience: number
+  daily_rate: string | null
+}) {
+  const response = await apiClient.post('/providers/onboard', payload)
+  return response.data as ProviderResponse
+}
+
+export async function getMyProvider() {
+  const response = await apiClient.get('/providers/me')
+  return response.data as ProviderResponse
 }
 
 export async function signupTourist(payload: {

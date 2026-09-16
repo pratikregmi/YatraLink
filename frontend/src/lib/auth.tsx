@@ -8,21 +8,16 @@ import {
   type ReactNode,
 } from 'react'
 
-import { getCurrentUser, loginTourist, signupTourist, type UserResponse } from './api'
+import {
+  getMe,
+  login as loginRequest,
+  signup as signupRequest,
+  type LoginPayload,
+  type SignupPayload,
+} from './api/auth'
+import type { UserResponse } from './api'
 
 const TOKEN_STORAGE_KEY = 'yatra-link-token'
-
-type LoginPayload = {
-  email: string
-  password: string
-}
-
-type SignupPayload = {
-  full_name: string
-  email: string
-  password: string
-  password_confirmation: string
-}
 
 type AuthContextValue = {
   user: UserResponse | null
@@ -61,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchCurrentUser = useCallback(async (token: string) => {
     try {
-      const profile = await getCurrentUser(token)
+      const profile = await getMe(token)
       setUser(profile)
     } catch {
       clearStoredToken()
@@ -82,27 +77,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchCurrentUser])
 
   const login = useCallback(async (payload: LoginPayload) => {
-    const authResponse = await loginTourist(payload)
+    const authResponse = await loginRequest(payload)
     setStoredToken(authResponse.access_token)
-    const profile = await getCurrentUser(authResponse.access_token)
+    const profile = await getMe(authResponse.access_token)
     setUser(profile)
     return profile
   }, [])
 
   const signup = useCallback(
     async (payload: SignupPayload) => {
-      await signupTourist(payload)
-      const profile = await login({ email: payload.email, password: payload.password })
+      await signupRequest(payload)
+      const profile = await login({
+        email: payload.email,
+        password: payload.password,
+        role: payload.role,
+      })
       return profile
     },
-    [],
+    [login],
   )
 
   const logout = useCallback(() => {
     clearStoredToken()
     setUser(null)
-    window.history.pushState({}, '', '/login')
-    window.dispatchEvent(new PopStateEvent('popstate'))
   }, [])
 
   const value = useMemo<AuthContextValue>(

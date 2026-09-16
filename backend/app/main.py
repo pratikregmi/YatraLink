@@ -15,7 +15,7 @@ settings = get_settings()
 app = FastAPI(
     title='YatraOne API',
     version='0.115.0',
-    description='Foundation API for YatraOne project setup.',
+    description='API for YatraOne project setup.',
 )
 
 app.add_middleware(

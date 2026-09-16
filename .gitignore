@@ -6,6 +6,7 @@ frontend/*.local
 
 # Backend / Python
 backend/.venv/
+.venv/
 backend/__pycache__/
 backend/.pytest_cache/
 backend/.ruff_cache/
@@ -14,6 +15,9 @@ backend/.env.*
 backend/.venv/
 **/__pycache__/
 *.py[cod]
+*.db
+*.sqlite
+*.sqlite3
 
 # OS / editor
 .DS_Store

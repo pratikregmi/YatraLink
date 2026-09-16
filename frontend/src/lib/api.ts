@@ -18,6 +18,31 @@ export const apiClient = axios.create({
   },
 })
 
+export function getApiErrorMessage(error: unknown, fallback: string) {
+  if (!axios.isAxiosError(error)) {
+    return error instanceof Error && error.message ? error.message : fallback
+  }
+
+  const detail = error.response?.data?.detail
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item: { msg?: string }) => item.msg)
+      .filter(Boolean)
+      .map((message) => message!.replace(/^Value error,\s*/i, ''))
+
+    if (messages.length > 0) {
+      return messages.join(' ')
+    }
+  }
+
+  if (typeof detail === 'string' && detail) {
+    return detail
+  }
+
+  return fallback
+}
+
 export async function getHealthStatus() {
   const response = await apiClient.get('/health')
   return response.data

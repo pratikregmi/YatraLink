@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 
 import { useAuth } from '../lib/auth'
+import { getApiErrorMessage } from '../lib/api'
 
 const initialForm = {
   full_name: '',
@@ -29,15 +30,17 @@ export function SignupPage({ navigate }: SignupPageProps) {
     setLoading(true)
     setError('')
 
+    if (form.password !== form.password_confirmation) {
+      setError('Passwords do not match.')
+      setLoading(false)
+      return
+    }
+
     try {
       await signup(form)
       navigate('/account')
     } catch (submissionError) {
-      const message =
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : 'Unable to create account. Please try again.'
-      setError(message)
+      setError(getApiErrorMessage(submissionError, 'Unable to create account. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -86,6 +89,11 @@ export function SignupPage({ navigate }: SignupPageProps) {
               required
             />
           </label>
+
+            <p className="auth-password-hint">
+              Use at least 8 characters, including one uppercase letter, one number, and one special
+              character.
+            </p>
 
           <label>
             Confirm password

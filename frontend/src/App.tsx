@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { AuthModal } from './components/auth/AuthModal'
-import { getCurrentUser, type UserResponse } from './lib/api'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { useAuth } from './lib/auth'
+import { AccountPage } from './routes/AccountPage'
+import LoginPage from './routes/auth/Login'
+import SignupPage from './routes/auth/Signup'
 import './App.css'
 
 function Logo() {
@@ -47,25 +51,40 @@ const services = [
 ]
 
 function App() {
-  const [user, setUser] = useState<UserResponse | null>(null)
+  const { user, loading, logout } = useAuth()
   const [authOpen, setAuthOpen] = useState(false)
+  const [path, setPath] = useState(window.location.pathname)
 
-  useEffect(() => {
-    const token = localStorage.getItem('yatra-link-token')
-    if (!token) {
-      return
+  const navigate = (nextPath: string) => {
+    window.history.pushState({}, '', nextPath)
+    setPath(nextPath)
+  }
+
+  if (path === '/account') {
+    if (loading) {
+      return (
+        <div className="auth-route-shell">
+          <div className="auth-route-card">
+            <span className="eyebrow">YatraLink</span>
+            <h1>Loading your profile...</h1>
+          </div>
+        </div>
+      )
     }
 
-    getCurrentUser(token)
-      .then((profile) => setUser(profile))
-      .catch(() => {
-        localStorage.removeItem('yatra-link-token')
-      })
-  }, [])
+    return (
+      <ProtectedRoute navigate={navigate}>
+        <AccountPage navigate={navigate} />
+      </ProtectedRoute>
+    )
+  }
 
-  const handleLogout = () => {
-    localStorage.removeItem('yatra-link-token')
-    setUser(null)
+  if (path === '/login') {
+    return <LoginPage navigate={navigate} />
+  }
+
+  if (path === '/signup') {
+    return <SignupPage navigate={navigate} />
   }
 
   return (
@@ -80,7 +99,17 @@ function App() {
           <a href="#about">About</a>
         </nav>
 
-        <button className="get-started" onClick={() => setAuthOpen(true)}>
+        <button
+          className="get-started"
+          onClick={() => {
+            if (user) {
+              navigate('/account')
+              return
+            }
+
+            setAuthOpen(true)
+          }}
+        >
           {user ? 'My Account' : 'Get Started'}
         </button>
       </header>
@@ -343,12 +372,14 @@ function App() {
         isOpen={authOpen}
         onClose={() => setAuthOpen(false)}
         onAuthenticated={(profile) => {
-          setUser(profile)
+          void profile
           setAuthOpen(false)
+          navigate('/account')
         }}
         onLogout={() => {
-          handleLogout()
+          logout()
           setAuthOpen(false)
+          navigate('/')
         }}
         user={user}
       />

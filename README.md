@@ -10,51 +10,61 @@ YatraOne is a Nepal-based tourism marketplace connecting travelers with local gu
 - `.github/` – CI workflow configuration
 - `README.md` – project overview and setup notes
 
-## Current branch scope
+## Current feature scope
 
-This branch focuses only on the project foundation:
+The current branch includes:
 
-- frontend scaffolding and configuration
-- backend app structure and configuration
-- PostgreSQL-ready architecture
-- health endpoint at `/api/v1/health`
-- environment examples
-- CORS setup and API service layer
-- linting, formatting, and basic tests
-- initial documentation
+- Tourist and local-guide signup and login
+- Password hashing and JWT authentication
+- Protected `/api/v1/auth/me` profile endpoint
+- Frontend auth context and protected account route
+- Role-specific account profile and logout flow
+- Alembic migration for the users table
+- Health endpoint, CORS setup, linting, and tests
 
-The following are intentionally not implemented in this branch:
-
-- authentication
-- guide search
-- maps
-- bookings
-- payments
-- messaging
-- reviews
-- dashboards
-- AI features
+Marketplace features such as search, bookings, payments, messaging, reviews,
+dashboards, and AI features are not implemented yet.
 
 ## Local development
 
-### Frontend
+### Codespaces setup
+
+When the Codespace is created, `.devcontainer/setup.sh` creates or reuses the
+root `.venv`, installs `backend/requirements.txt`, installs frontend packages,
+and copies environment templates. The virtual environment and `node_modules`
+are ignored by Git and remain available while switching branches in the same
+Codespace. Source dependency changes on a branch should be installed once with
+the commands below.
+
+### Start the backend
 
 ```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
+cd /workspaces/YatraLink/backend
+source ../.venv/bin/activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Backend
+The API is available at `http://localhost:8000` and its interactive docs are
+at `http://localhost:8000/docs`.
+
+### Start the frontend
+
+Open a second terminal in the same Codespace:
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+cd /workspaces/YatraLink/frontend
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+Open the forwarded frontend port shown by VS Code, normally
+`http://localhost:5173`.
+
+If dependencies changed on the current branch, run:
+
+```bash
+cd /workspaces/YatraLink
+.venv/bin/python -m pip install -r backend/requirements.txt
+npm --prefix frontend install
 ```
 
 ## Health check
@@ -75,7 +85,9 @@ GET /api/v1/health
 - Frontend lint/build: `npm run lint` and `npm run build`
 - Backend tests/lint: `pytest -q` and `ruff check .`
 
-This repository is intentionally focused on foundation work only, as requested for the feature/project-setup branch.
+The local SQLite database and virtual environment are intentionally not
+committed. They are recreated or reused inside the Codespace from the tracked
+dependency files and migrations.
 
 🚘 Private Cars
 🚙 SUVs

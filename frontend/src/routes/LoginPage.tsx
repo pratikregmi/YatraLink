@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 
 import { useAuth } from '../lib/auth'
+import { getApiErrorMessage } from '../lib/api'
 
 const initialForm = {
   email: '',
@@ -31,11 +32,7 @@ export function LoginPage({ navigate }: LoginPageProps) {
       await login(form)
       navigate('/account')
     } catch (submissionError) {
-      const message =
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : 'Unable to log in. Please check your credentials.'
-      setError(message)
+      setError(getApiErrorMessage(submissionError, 'Unable to log in. Please check your credentials.'))
     } finally {
       setLoading(false)
     }

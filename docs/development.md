@@ -9,23 +9,30 @@
 
 ## Local setup
 
+### GitHub Codespaces
+
+The repository includes `.devcontainer/setup.sh`. Codespaces runs it when a
+container is created. It creates the root `.venv`, installs backend packages,
+and installs frontend packages only when `frontend/node_modules` is missing.
+Switching branches in the same Codespace keeps both environments; repeat the
+setup command only when a branch changes `requirements.txt` or `package.json`.
+
+```bash
+bash .devcontainer/setup.sh
+```
+
 ### Frontend
 
 ```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
+cd /workspaces/YatraLink/frontend
+npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 ### Backend
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
+cd /workspaces/YatraLink/backend
+source ../.venv/bin/activate
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -57,4 +64,7 @@ Response:
 
 ## Notes
 
-This branch is intentionally limited to project foundation and API plumbing. Authentication, guide search, maps, bookings, payments, messaging, reviews, dashboards, and AI features are not included.
+The current branch includes tourist and local-guide authentication, JWT-protected
+profiles, account/logout flow, and the initial users migration. Marketplace
+features such as guide search, maps, bookings, payments, messaging, reviews,
+dashboards, and AI features are not included yet.

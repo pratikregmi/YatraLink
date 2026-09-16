@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react'
 
-import { getCurrentUser, loginUser, signupUser, type UserResponse } from '../../lib/api'
+import { useAuth } from '../../lib/auth'
+import { getApiErrorMessage, type UserResponse } from '../../lib/api'
 import './AuthModal.css'
 import { RoleSelection } from './RoleSelection'
 import { TouristAuth, type AuthMode } from './TouristAuth'
@@ -19,9 +20,11 @@ const initialForm = {
   full_name: '',
   email: '',
   password: '',
+  password_confirmation: '',
 }
 
 export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: AuthModalProps) {
+  const { login, signup } = useAuth()
   const [view, setView] = useState<AuthView>('role')
   const [mode, setMode] = useState<AuthMode>('signup')
   const [selectedRole, setSelectedRole] = useState<'tourist' | 'guide'>('tourist')
@@ -71,22 +74,18 @@ export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: 
       const selectedRoleValue = selectedRole === 'guide' ? 'LOCAL_GUIDE' : 'TOURIST'
 
       if (mode === 'signup') {
-        await signupUser({
+        if (form.password !== form.password_confirmation) {
+          setError('Passwords do not match.')
+          return
+        }
+
+        const profile = await signup({
           full_name: form.full_name,
           email: form.email,
           password: form.password,
-          password_confirmation: form.password,
+          password_confirmation: form.password_confirmation,
           role: selectedRoleValue,
         })
-
-        const loginResponse = await loginUser({
-          email: form.email,
-          password: form.password,
-          role: selectedRoleValue,
-        })
-
-        localStorage.setItem('yatra-link-token', loginResponse.access_token)
-        const profile = await getCurrentUser(loginResponse.access_token)
         onAuthenticated(profile)
         setForm(initialForm)
         setView('role')
@@ -94,24 +93,17 @@ export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: 
         return
       }
 
-      const loginResponse = await loginUser({
+      const profile = await login({
         email: form.email,
         password: form.password,
         role: selectedRoleValue,
       })
-
-      localStorage.setItem('yatra-link-token', loginResponse.access_token)
-      const profile = await getCurrentUser(loginResponse.access_token)
       onAuthenticated(profile)
       setForm(initialForm)
       setView('role')
       onClose()
     } catch (submissionError) {
-      const message =
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : 'Unable to complete authentication.'
-      setError(message)
+      setError(getApiErrorMessage(submissionError, 'Unable to complete authentication.'))
     } finally {
       setLoading(false)
     }
@@ -158,7 +150,7 @@ export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: 
         onSubmit={handleAuthSubmit}
       />
     )
-  }, [error, form, loading, mode, onClose, selectedRole, view])
+  }, [error, form, handleAuthSubmit, loading, mode, selectedRole, view])
 
   if (!isOpen) {
     return null

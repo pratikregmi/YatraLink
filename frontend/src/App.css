@@ -2074,3 +2074,75 @@ a {
   }
 
 }
+
+.auth-route-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background:
+    linear-gradient(135deg, rgba(8, 119, 199, 0.08), transparent 45%),
+    #f5f8fa;
+}
+
+.auth-route-card {
+  width: min(100%, 520px);
+  padding: 40px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 24px 70px rgba(6, 60, 104, 0.14);
+}
+
+.account-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.account-card h1 {
+  margin: 0;
+  color: var(--dark-blue);
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.05;
+}
+
+.account-intro {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.account-summary {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-left: 3px solid var(--blue);
+  background: var(--light-bg);
+}
+
+.account-summary p {
+  margin: 0;
+  color: var(--text);
+}
+
+.secondary-button {
+  width: 100%;
+  border: 1px solid var(--blue);
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.secondary-button:hover {
+  background: rgba(8, 119, 199, 0.08);
+}
+
+.auth-password-hint {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}

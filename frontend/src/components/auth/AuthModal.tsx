@@ -1,6 +1,6 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react'
 
-import { getCurrentUser, loginUser, signupUser, type UserResponse } from '../../lib/api'
+import { getApiErrorMessage, getCurrentUser, loginUser, signupUser, type UserResponse } from '../../lib/api'
 import './AuthModal.css'
 import { RoleSelection } from './RoleSelection'
 import { TouristAuth, type AuthMode } from './TouristAuth'
@@ -19,6 +19,7 @@ const initialForm = {
   full_name: '',
   email: '',
   password: '',
+  password_confirmation: '',
 }
 
 export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: AuthModalProps) {
@@ -71,11 +72,16 @@ export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: 
       const selectedRoleValue = selectedRole === 'guide' ? 'LOCAL_GUIDE' : 'TOURIST'
 
       if (mode === 'signup') {
+        if (form.password !== form.password_confirmation) {
+          setError('Passwords do not match.')
+          return
+        }
+
         await signupUser({
           full_name: form.full_name,
           email: form.email,
           password: form.password,
-          password_confirmation: form.password,
+          password_confirmation: form.password_confirmation,
           role: selectedRoleValue,
         })
 
@@ -107,11 +113,7 @@ export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: 
       setView('role')
       onClose()
     } catch (submissionError) {
-      const message =
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : 'Unable to complete authentication.'
-      setError(message)
+      setError(getApiErrorMessage(submissionError, 'Unable to complete authentication.'))
     } finally {
       setLoading(false)
     }

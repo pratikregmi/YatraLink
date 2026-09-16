@@ -278,3 +278,62 @@ def test_local_guide_login_returns_matching_role_profile() -> None:
     profile_response = client.get('/api/v1/auth/me', headers={'Authorization': f'Bearer {token}'})
     assert profile_response.status_code == 200, profile_response.text
     assert profile_response.json()['role'] == 'LOCAL_GUIDE'
+
+
+def test_refresh_endpoint_issues_a_new_access_token() -> None:
+    email = make_email('refresh-token')
+    client.post(
+        '/api/v1/auth/tourist/signup',
+        json={
+            'full_name': 'Kiran Shrestha',
+            'email': email,
+            'password': 'StrongPass123!',
+            'password_confirmation': 'StrongPass123!',
+        },
+    )
+
+    login_response = client.post(
+        '/api/v1/auth/tourist/login',
+        json={'email': email, 'password': 'StrongPass123!'},
+    )
+    refresh_cookie = login_response.cookies.get('refresh_token')
+
+    assert login_response.status_code == 200, login_response.text
+    assert refresh_cookie
+
+    refresh_response = client.post('/api/v1/auth/refresh', cookies={'refresh_token': refresh_cookie})
+
+    assert refresh_response.status_code == 200, refresh_response.text
+    body = refresh_response.json()
+    assert body['token_type'] == 'bearer'
+    assert body['access_token']
+    assert body['access_token'] != login_response.json()['access_token']
+
+
+def test_logout_revokes_refresh_token() -> None:
+    email = make_email('logout-token')
+    client.post(
+        '/api/v1/auth/tourist/signup',
+        json={
+            'full_name': 'Ritika Singh',
+            'email': email,
+            'password': 'StrongPass123!',
+            'password_confirmation': 'StrongPass123!',
+        },
+    )
+
+    login_response = client.post(
+        '/api/v1/auth/tourist/login',
+        json={'email': email, 'password': 'StrongPass123!'},
+    )
+    refresh_cookie = login_response.cookies.get('refresh_token')
+
+    assert refresh_cookie
+
+    logout_response = client.post('/api/v1/auth/logout', cookies={'refresh_token': refresh_cookie})
+    assert logout_response.status_code == 200, logout_response.text
+
+    refresh_response = client.post('/api/v1/auth/refresh', cookies={'refresh_token': refresh_cookie})
+
+    assert refresh_response.status_code == 401, refresh_response.text
+    assert 'revoked' in refresh_response.json()['detail'].lower() or 'not found' in refresh_response.json()['detail'].lower()

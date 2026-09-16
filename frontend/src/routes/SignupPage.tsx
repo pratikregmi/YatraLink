@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 
+import { getApiErrorMessage } from '../lib/api'
 import { useAuth } from '../lib/auth'
 
 const initialForm = {
@@ -30,14 +31,15 @@ export function SignupPage({ navigate }: SignupPageProps) {
     setError('')
 
     try {
+      if (form.password !== form.password_confirmation) {
+        setError('Passwords do not match.')
+        return
+      }
+
       await signup(form)
       navigate('/account')
     } catch (submissionError) {
-      const message =
-        submissionError instanceof Error && submissionError.message
-          ? submissionError.message
-          : 'Unable to create account. Please try again.'
-      setError(message)
+      setError(getApiErrorMessage(submissionError, 'Unable to create account. Please try again.'))
     } finally {
       setLoading(false)
     }

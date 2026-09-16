@@ -51,7 +51,7 @@ function App() {
   const [authOpen, setAuthOpen] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('yatra-link-token')
+    const token = window.sessionStorage.getItem('yatra-link-access-token')
     if (!token) {
       return
     }
@@ -59,12 +59,12 @@ function App() {
     getCurrentUser(token)
       .then((profile) => setUser(profile))
       .catch(() => {
-        localStorage.removeItem('yatra-link-token')
+        window.sessionStorage.removeItem('yatra-link-access-token')
       })
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem('yatra-link-token')
+    window.sessionStorage.removeItem('yatra-link-access-token')
     setUser(null)
   }
 

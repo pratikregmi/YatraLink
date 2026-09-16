@@ -8,9 +8,16 @@ import {
   type ReactNode,
 } from 'react'
 
-import { getCurrentUser, loginTourist, signupTourist, type UserResponse } from './api'
-
-const TOKEN_STORAGE_KEY = 'yatra-link-token'
+import {
+  clearStoredAccessToken,
+  getCurrentUser,
+  loginTourist,
+  logoutUser,
+  refreshAccessToken,
+  setStoredAccessToken,
+  signupTourist,
+  type UserResponse,
+} from './api'
 
 type LoginPayload = {
   email: string
@@ -30,7 +37,7 @@ type AuthContextValue = {
   loading: boolean
   login: (payload: LoginPayload) => Promise<UserResponse>
   signup: (payload: SignupPayload) => Promise<UserResponse>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -40,19 +47,15 @@ export function getStoredToken() {
     return null
   }
 
-  return window.localStorage.getItem(TOKEN_STORAGE_KEY)
+  return window.sessionStorage.getItem('yatra-link-access-token')
 }
 
 export function setStoredToken(token: string) {
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, token)
-  }
+  setStoredAccessToken(token)
 }
 
 export function clearStoredToken() {
-  if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(TOKEN_STORAGE_KEY)
-  }
+  clearStoredAccessToken()
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -70,15 +73,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const token = getStoredToken()
+    const bootstrapSession = async () => {
+      const token = getStoredToken()
 
-    if (!token) {
-      setUser(null)
-      setLoading(false)
-      return
+      if (!token) {
+        try {
+          const refreshedToken = await refreshAccessToken()
+          await fetchCurrentUser(refreshedToken)
+        } catch {
+          setUser(null)
+        } finally {
+          setLoading(false)
+        }
+        return
+      }
+
+      try {
+        await fetchCurrentUser(token)
+      } catch {
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    fetchCurrentUser(token).finally(() => setLoading(false))
+    void bootstrapSession()
   }, [fetchCurrentUser])
 
   const login = useCallback(async (payload: LoginPayload) => {
@@ -98,11 +117,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  const logout = useCallback(() => {
-    clearStoredToken()
-    setUser(null)
-    window.history.pushState({}, '', '/login')
-    window.dispatchEvent(new PopStateEvent('popstate'))
+  const logout = useCallback(async () => {
+    try {
+      await logoutUser()
+    } finally {
+      clearStoredToken()
+      setUser(null)
+    }
   }, [])
 
   const value = useMemo<AuthContextValue>(

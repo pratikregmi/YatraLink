@@ -11,6 +11,7 @@ type TouristAuthProps = {
     full_name: string
     email: string
     password: string
+    password_confirmation: string
   }
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
   error: string
@@ -94,6 +95,20 @@ export function TouristAuth({
             required
           />
         </label>
+
+        {mode === 'signup' && (
+          <label className="auth-field">
+            <span>Confirm password</span>
+            <input
+              type="password"
+              name="password_confirmation"
+              value={form.password_confirmation}
+              onChange={onChange}
+              placeholder="Confirm your password"
+              required
+            />
+          </label>
+        )}
 
         {error && <p className="auth-form-error">{error}</p>}
 

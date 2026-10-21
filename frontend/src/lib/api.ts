@@ -47,6 +47,17 @@ export const apiClient = axios.create({
   },
 })
 
+const refreshClient = axios.create({
+  baseURL: apiBaseUrl,
+  timeout: 10000,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+let refreshPromise: Promise<string> | null = null
+
 export function getApiErrorMessage(error: unknown, fallback: string) {
   if (!axios.isAxiosError(error)) {
     return error instanceof Error && error.message ? error.message : fallback
@@ -72,6 +83,11 @@ export function getApiErrorMessage(error: unknown, fallback: string) {
   return fallback
 }
 
+function isUnauthenticatedAuthEndpoint(url: string | undefined) {
+  const path = url?.split(/[?#]/, 1)[0] ?? ''
+  return /\/auth\/(?:refresh|logout|login|signup|(?:tourist|guide)\/(?:login|signup))\/?$/.test(path)
+}
+
 apiClient.interceptors.request.use((config) => {
   const token = getStoredAccessToken()
 
@@ -92,13 +108,22 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined
 
-    if (!error.response || !originalRequest || originalRequest._retry || error.response.status !== 401) {
+    if (
+      !error.response ||
+      !originalRequest ||
+      originalRequest._retry ||
+      error.response.status !== 401 ||
+      isUnauthenticatedAuthEndpoint(originalRequest.url)
+    ) {
       return Promise.reject(error)
     }
 
+    const hadAccessToken = Boolean(
+      originalRequest.headers?.Authorization || getStoredAccessToken(),
+    )
+
     try {
-      const refreshResponse = await apiClient.post('/auth/refresh')
-      const nextAccessToken = refreshResponse.data?.access_token as string | undefined
+      const nextAccessToken = await refreshAccessToken()
 
       if (!nextAccessToken) {
         throw new Error('Refresh token response missing access token')
@@ -111,29 +136,40 @@ apiClient.interceptors.response.use(
         Authorization: `Bearer ${nextAccessToken}`,
       })
 
-      return apiClient(originalRequest)
     } catch (refreshError) {
-      setStoredAccessToken(null)
+      clearStoredAccessToken()
 
-      if (typeof window !== 'undefined') {
+      if (hadAccessToken && typeof window !== 'undefined') {
         window.location.assign('/login?reason=session_expired')
       }
 
       return Promise.reject(refreshError)
     }
+
+    return apiClient(originalRequest)
   },
 )
 
 export async function refreshAccessToken() {
-  const response = await apiClient.post('/auth/refresh')
-  const accessToken = response.data?.access_token as string | undefined
+  if (!refreshPromise) {
+    refreshPromise = refreshClient
+      .post('/auth/refresh')
+      .then((response) => {
+        const accessToken = response.data?.access_token as string | undefined
 
-  if (!accessToken) {
-    throw new Error('No access token returned from refresh endpoint')
+        if (!accessToken) {
+          throw new Error('No access token returned from refresh endpoint')
+        }
+
+        setStoredAccessToken(accessToken)
+        return accessToken
+      })
+      .finally(() => {
+        refreshPromise = null
+      })
   }
 
-  setStoredAccessToken(accessToken)
-  return accessToken
+  return refreshPromise
 }
 
 export async function getHealthStatus() {

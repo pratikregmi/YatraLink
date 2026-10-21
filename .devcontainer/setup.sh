@@ -10,7 +10,7 @@ if [[ ! -x .venv/bin/python ]] || ! .venv/bin/python -c 'import sys' >/dev/null 
 fi
 
 .venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -r backend/requirements.txt
+.venv/bin/python -m pip install -r requirements.txt
 
 if [[ ! -d frontend/node_modules ]]; then
   npm --prefix frontend install

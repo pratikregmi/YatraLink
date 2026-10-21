@@ -30,7 +30,7 @@ dashboards, and AI features are not implemented yet.
 ### Codespaces setup
 
 When the Codespace is created, `.devcontainer/setup.sh` creates or reuses the
-root `.venv`, installs `backend/requirements.txt`, installs frontend packages,
+root `.venv`, installs the root `requirements.txt`, installs frontend packages,
 and copies environment templates. The virtual environment and `node_modules`
 are ignored by Git and remain available while switching branches in the same
 Codespace. Source dependency changes on a branch should be installed once with
@@ -63,7 +63,7 @@ If dependencies changed on the current branch, run:
 
 ```bash
 cd /workspaces/YatraLink
-.venv/bin/python -m pip install -r backend/requirements.txt
+.venv/bin/python -m pip install -r requirements.txt
 npm --prefix frontend install
 ```
 

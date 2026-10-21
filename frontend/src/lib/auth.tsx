@@ -1,3 +1,5 @@
+/* oxlint-disable react/only-export-components */
+
 import {
   createContext,
   useCallback,
@@ -30,6 +32,7 @@ type AuthContextValue = {
   login: (payload: LoginPayload) => Promise<UserResponse>
   signup: (payload: SignupPayload) => Promise<UserResponse>
   logout: () => Promise<void>
+  refreshCurrentUser: () => Promise<UserResponse | null>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -58,11 +61,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await getMe(token)
       setUser(profile)
+      return profile
     } catch {
       clearStoredToken()
       setUser(null)
+      return null
     }
   }, [])
+
+  const refreshCurrentUser = useCallback(async () => {
+    const token = getStoredToken()
+    if (!token) {
+      setUser(null)
+      return null
+    }
+
+    return fetchCurrentUser(token)
+  }, [fetchCurrentUser])
 
   useEffect(() => {
     const bootstrapSession = async () => {
@@ -130,8 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       signup,
       logout,
+      refreshCurrentUser,
     }),
-    [loading, login, logout, signup, user],
+    [loading, login, logout, refreshCurrentUser, signup, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

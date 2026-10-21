@@ -337,3 +337,86 @@ def test_logout_revokes_refresh_token() -> None:
 
     assert refresh_response.status_code == 401, refresh_response.text
     assert 'revoked' in refresh_response.json()['detail'].lower() or 'not found' in refresh_response.json()['detail'].lower()
+
+
+def provider_payload() -> dict[str, object]:
+    return {
+        'category': 'guide',
+        'bio': 'I have guided visitors through Nepal for many seasons.',
+        'years_experience': 6,
+        'daily_rate': '45.00',
+    }
+
+
+def create_tourist_session() -> tuple[str, str]:
+    email = make_email('provider')
+    signup_response = client.post(
+        '/api/v1/auth/tourist/signup',
+        json={
+            'full_name': 'Provider Candidate',
+            'email': email,
+            'password': 'StrongPass123!',
+            'password_confirmation': 'StrongPass123!',
+        },
+    )
+    assert signup_response.status_code == 201, signup_response.text
+
+    login_response = client.post(
+        '/api/v1/auth/tourist/login',
+        json={'email': email, 'password': 'StrongPass123!'},
+    )
+    assert login_response.status_code == 200, login_response.text
+    return email, login_response.json()['access_token']
+
+
+def test_provider_onboarding_succeeds_and_upgrades_role() -> None:
+    _, token = create_tourist_session()
+
+    response = client.post(
+        '/api/v1/providers/onboard',
+        json=provider_payload(),
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body['category'] == 'guide'
+    assert body['years_experience'] == 6
+    assert body['daily_rate'] == '45.00'
+
+    profile = client.get('/api/v1/auth/me', headers={'Authorization': f'Bearer {token}'})
+    assert profile.status_code == 200, profile.text
+    assert profile.json()['role'] == 'PROVIDER'
+
+    provider_profile = client.get('/api/v1/providers/me', headers={'Authorization': f'Bearer {token}'})
+    assert provider_profile.status_code == 200, provider_profile.text
+    assert provider_profile.json()['id'] == body['id']
+
+
+def test_provider_onboarding_requires_authentication() -> None:
+    response = client.post('/api/v1/providers/onboard', json=provider_payload())
+
+    assert response.status_code == 401, response.text
+
+
+def test_provider_onboarding_rejects_duplicate_profile() -> None:
+    _, token = create_tourist_session()
+    headers = {'Authorization': f'Bearer {token}'}
+
+    first = client.post('/api/v1/providers/onboard', json=provider_payload(), headers=headers)
+    second = client.post('/api/v1/providers/onboard', json=provider_payload(), headers=headers)
+
+    assert first.status_code == 201, first.text
+    assert second.status_code == 409, second.text
+
+
+def test_provider_onboarding_validates_required_fields() -> None:
+    _, token = create_tourist_session()
+
+    response = client.post(
+        '/api/v1/providers/onboard',
+        json={'category': 'guide'},
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == 422, response.text

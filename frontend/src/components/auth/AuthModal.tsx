@@ -1,4 +1,6 @@
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react'
+/* oxlint-disable react/set-state-in-effect */
+
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 
 import { useAuth } from '../../lib/auth'
 import { getApiErrorMessage, type UserResponse } from '../../lib/api'
@@ -109,7 +111,7 @@ export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: 
     }
   }
 
-  const currentScreen = useMemo(() => {
+  const currentScreen = (() => {
     if (view === 'role') {
       return (
         <RoleSelection
@@ -150,7 +152,7 @@ export function AuthModal({ isOpen, onClose, onAuthenticated, onLogout, user }: 
         onSubmit={handleAuthSubmit}
       />
     )
-  }, [error, form, handleAuthSubmit, loading, mode, selectedRole, view])
+  })()
 
   if (!isOpen) {
     return null

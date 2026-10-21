@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AuthModal } from './components/auth/AuthModal'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { getMyProvider } from './lib/api'
 import { useAuth } from './lib/auth'
 import { AccountPage } from './routes/AccountPage'
 import LoginPage from './routes/auth/Login'
 import SignupPage from './routes/auth/Signup'
+import ProviderOnboarding from './routes/provider/Onboarding'
 import './App.css'
 
 function Logo() {
@@ -51,9 +53,36 @@ const services = [
 ]
 
 function App() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout, refreshCurrentUser } = useAuth()
   const [authOpen, setAuthOpen] = useState(false)
   const [path, setPath] = useState(window.location.pathname)
+  const [providerProfile, setProviderProfile] = useState<{ userId: number; exists: boolean } | null>(null)
+
+  useEffect(() => {
+    if (!user || user.role !== 'TOURIST') {
+      return
+    }
+
+    let active = true
+    getMyProvider()
+      .then(() => {
+        if (active) {
+          setProviderProfile({ userId: user.id, exists: true })
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProviderProfile({ userId: user.id, exists: false })
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [user])
+
+  const providerProfileLoading = user?.role === 'TOURIST' && providerProfile?.userId !== user.id
+  const hasProviderProfile = providerProfile?.userId === user?.id && providerProfile?.exists === true
 
   const navigate = (nextPath: string) => {
     window.history.pushState({}, '', nextPath)
@@ -79,6 +108,30 @@ function App() {
     )
   }
 
+  if (path === '/provider/onboarding') {
+    if (loading) {
+      return (
+        <div className="auth-route-shell">
+          <div className="auth-route-card">
+            <span className="eyebrow">YatraLink</span>
+            <h1>Loading your profile...</h1>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <ProtectedRoute navigate={navigate}>
+        <ProviderOnboarding
+          navigate={navigate}
+          onComplete={async () => {
+            await refreshCurrentUser()
+          }}
+        />
+      </ProtectedRoute>
+    )
+  }
+
   if (path === '/login') {
     return <LoginPage navigate={navigate} />
   }
@@ -98,6 +151,12 @@ function App() {
           <a href="#services">Services</a>
           <a href="#about">About</a>
         </nav>
+
+        {user?.role === 'TOURIST' && !providerProfileLoading && !hasProviderProfile && (
+          <button className="provider-nav-button" onClick={() => navigate('/provider/onboarding')}>
+            Become a Provider
+          </button>
+        )}
 
         <button
           className="get-started"

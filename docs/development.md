@@ -9,6 +9,23 @@
 
 ## Local setup
 
+### After switching branches
+
+Stay on a feature branch and run the setup script from the repository root. It
+is safe to rerun: it only recreates the ignored virtual environment when it is
+missing, installs the current branch dependencies, installs frontend packages,
+and applies Alembic migrations.
+
+```bash
+cd /workspaces/YatraLink
+git status --short --branch
+git pull --ff-only
+bash scripts/setup.sh
+```
+
+The same commands are kept in the root `cmd` reference file. The script does
+not switch branches, push commits, or modify `master`.
+
 ### GitHub Codespaces
 
 The repository includes `.devcontainer/setup.sh`. Codespaces runs it when a
@@ -34,6 +51,51 @@ npm run dev -- --host 0.0.0.0 --port 5173
 cd /workspaces/YatraLink/backend
 source ../.venv/bin/activate
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Verification before push or PR
+
+Run backend commands from `backend/` so the `app` package is importable:
+
+```bash
+cd /workspaces/YatraLink/backend
+../.venv/bin/python -m pytest -q
+../.venv/bin/ruff check .
+```
+
+Run frontend commands from `frontend/`:
+
+```bash
+cd /workspaces/YatraLink/frontend
+npm run lint
+npm run build
+```
+
+### Branch and PR workflow
+
+All pull requests target `develop`; `master` is not an integration target.
+
+```bash
+cd /workspaces/YatraLink
+git checkout develop
+git pull --ff-only origin develop
+git checkout -b feature/<short-name>
+bash scripts/setup.sh
+```
+
+After implementation and verification:
+
+```bash
+git add <changed-files>
+git commit -m "feat: describe the change"
+git push -u origin feature/<short-name>
+```
+
+Open the pull request with:
+
+```text
+base: develop
+compare: feature/<short-name>
 ```
 
 ## API contract
